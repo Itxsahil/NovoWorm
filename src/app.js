@@ -5,10 +5,21 @@ const app = express();
 
 app.use(
     cors({
-        origin: [`${process.env.CLIENT_URL}`, `${process.env.ADMIN_URL}`],
+        origin: (origin, callback) => {
+            console.log("Incoming Origin:", origin); // Log incoming origins
+            const allowedOrigins = [process.env.CLIENT_URL, process.env.ADMIN_URL];
+
+            if (!origin || allowedOrigins.includes(origin)) {
+                callback(null, true); // Allow request
+            } else {
+                console.error(`Blocked by CORS: ${origin}`); // Log rejected origin
+                callback(new Error("Not allowed by CORS"));
+            }
+        },
         credentials: true,
     })
 );
+
 app.use(
     express.json({
         limit: "50kb",

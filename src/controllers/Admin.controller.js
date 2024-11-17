@@ -11,10 +11,10 @@ const isValidEmail = (email) => {
   return regex.test(email);
 };
 
-const isValidPassword = (password) => {
-  const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-  return passwordRegex.test(password);
-};
+// const isValidPassword = (password) => {
+//   const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+//   return passwordRegex.test(password);
+// };
 
 const createAdmin = asyncHandler(async (req, res) => {
   const { username, email, password } = req.body;
@@ -27,9 +27,9 @@ const createAdmin = asyncHandler(async (req, res) => {
     throw new ApiError(400, 'Invalid email address');
   }
 
-  if (!isValidPassword(password)) {
-    throw new ApiError(400, 'Choose a strong password');
-  }
+  // if (!isValidPassword(password)) {
+  //   throw new ApiError(400, 'Choose a strong password');
+  // }
 
   // Check if the admin already exists
   const existingAdmin = await Admin.findOne({ $or: [{ username }, { email }] });
