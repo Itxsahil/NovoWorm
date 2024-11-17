@@ -15,7 +15,7 @@ import { findChapterById as findChapterByIdForUser } from "./BookChapters.contro
 const getAllBooksForUser = asyncHandler(async (req, res) => {
   const { page = 1, limit = 20 } = req.query; // Default to page 1, limit 20 per page
 
-  const books = await Book.find()
+  const books = await Book.find({status:"Published"})
     .sort({ createdAt: -1 })
     .skip((page - 1) * limit)
     .limit(parseInt(limit));
