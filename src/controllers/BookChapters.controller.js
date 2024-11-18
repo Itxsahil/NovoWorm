@@ -4,7 +4,7 @@ import { asyncHandler } from "../utils/asyncHendler.js";
 import { Book } from "../models/Book.model.js";
 import { Chapter } from "../models/Chapter.model.js";
 import { uploadOnCloudinary } from "../utils/Cloudinary.uploade.js";
-
+import { deleteFromeCloudinary } from "../utils/Cloudinary.delete.js";
 const createBook = asyncHandler(async (req, res) => {
   console.log(req.body);
 
@@ -253,6 +253,8 @@ const deleteBook = asyncHandler(async (req, res) => {
   if (!book) {
     throw new ApiError(404, 'Book not found');
   }
+
+  await deleteFromeCloudinary(book.coverImage, "image");
 
   // Delete all chapters associated with the book
   await Chapter.deleteMany({ _id: { $in: book.chapters } });
