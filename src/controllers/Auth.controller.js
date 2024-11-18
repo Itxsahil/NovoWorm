@@ -6,6 +6,7 @@ import { generateAccessToken, generateRefreshToken } from "../utils/JWT.js";
 import {generateVerificationText, generateVerificationHtml} from '../utils/userEmailGenerator.js';
 import {sendEmail} from "../utils/nodemailer.js";
 import crypto from 'crypto';
+import jwt from 'jsonwebtoken';
 
 const generatetoken_and_save = async (userId) => {
   const accessToken = generateAccessToken(userId);
@@ -13,7 +14,7 @@ const generatetoken_and_save = async (userId) => {
   try {
     const user = await Auth.findById(userId);
     user.refreshToken = refreshToken;
-    await user.save();
+    await user.save({validateBeforeSave: false});
   } catch (error) {
     throw new ApiError(
       500,
@@ -55,7 +56,7 @@ const Signin = asyncHandler(async (req, res) => {
   user.emailVerificationExpires = tokenExpiry;
   user.save({ validateBeforeSave: false });
 
-  const verificationUrl = `http://localhost:5173/verify-email/${unHashedToken}`;
+  const verificationUrl = `${req.protocol}://${req.get("host")}/verify-email/${unHashedToken}`;
   const subject = `please verify your email ${username}`;
   const html = generateVerificationHtml(username, verificationUrl);
   const text = generateVerificationText(username, verificationUrl);
@@ -71,9 +72,7 @@ const Signin = asyncHandler(async (req, res) => {
   return res.status(201).json(
     new ApiResponse(
       201,
-      // { data: createdUser },
       {},
-      // "User created successfully and the varification mail is sent successfully please check your mail box"
       "process is onpending pleas verify your email"
     )
   );
@@ -82,7 +81,6 @@ const Signin = asyncHandler(async (req, res) => {
 const Login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
-  // Check if the user already exists in the database
   let user = await Auth.findOne({ email });
 
   if (!user) {
@@ -99,7 +97,6 @@ const Login = asyncHandler(async (req, res) => {
     throw new ApiError(401, "Please verify your email");
   }
 
-  // Generate an access token and refresh token
   const { accessToken, refreshToken } = await generatetoken_and_save(user._id);
   try {
     await Auth.findByIdAndUpdate(user._id, { refreshToken });
@@ -126,38 +123,29 @@ const refreshAccessAndRefreshToken = asyncHandler(async (req, res) => {
   const { refreshToken: requestRefreshToken } = req.body;
 
   if (!requestRefreshToken) {
-    console.error('No refresh token provided');
     throw new ApiError(400, 'Refresh token is required');
   }
-  // console.log('Received refresh token: line number 132', requestRefreshToken);
+
+  const auth = jwt.verify(requestRefreshToken, process.env.REFRESH_TOKEN_SECRET);
 
   try {
-    // Attempt to find the user by the token
-    const user = await Auth.findOne({refreshToken:requestRefreshToken});
+    const user = await Auth.findById(auth.userId).select(
+      "-password -emailVerificationExpires -emailVerificationToken -isEmailVerified"
+    )
 
     if (!user) {
       console.error('No user found with the provided refresh token');
       throw new ApiError(401, 'Invalid refresh token');
-    } else if (user.refreshToken !== requestRefreshToken) {
-      console.error('Stored refresh token does not match the provided token');
-      throw new ApiError(401, 'Invalid refresh token');
     }
-    // console.log('User found, refresh token is valid:', user._id);
 
-    // Generate new tokens
     const { accessToken, refreshToken } = await generatetoken_and_save(user._id);
-    // console.log('Generated new tokens:', { accessToken, refreshToken });
 
-    // Update the user's refresh token in the database
     try {
       await Auth.findByIdAndUpdate(user._id, { refreshToken });
-      // console.log('Refresh token successfully updated in the database');
     } catch (updateError) {
-      // console.error('Failed to save refresh token:', updateError);
       throw new ApiError(409, 'Failed to save refresh token');
     }
 
-    // Respond with new tokens
     return res.status(200).json(
       new ApiResponse(
         200,
@@ -166,7 +154,6 @@ const refreshAccessAndRefreshToken = asyncHandler(async (req, res) => {
       )
     );
   } catch (error) {
-    console.error('Error refreshing tokens:', error);
     throw new ApiError(403, 'Refresh token expired or invalid');
   }
 });
