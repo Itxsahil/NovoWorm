@@ -1,5 +1,5 @@
 const generateSuperAdminEmail = (adminId, username, email) => {
-  const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3000/api/v1';
+  const baseUrl = 'https://novoworm.onrender.com/api/v1';
   const approveLink = `${baseUrl}/admin/approve/${adminId}`;
   const rejectLink = `${baseUrl}/admin/reject/${adminId}`;
 
