@@ -124,13 +124,18 @@ const UpdateViews = asyncHandler(async (req, res) => {
 })
 
 const YouMayAlsoLike = asyncHandler(async (req, res) => {
-  const randomBooks = await Book.aggregate([{ $sample: { size: 4 } }]); // Change size to the number of random books you want
+  const randomBooks = await Book.aggregate([
+    { $match: { status: 'Published' } }, // Filter books with status 'Published'
+    { $sample: { size: 4 } } // Randomly select 4 books
+  ]);
+
   res.json(randomBooks);
 });
 
 
+
 const NewReleases = asyncHandler(async (req, res) => {
-  const newReleases = await Book.find()
+  const newReleases = await Book.find({status:"Published"})
     .sort({ createdAt: -1 }) // Sort by releaseDate in descending order
     .limit(4); // Fetch the 5 newest books
   res.json(newReleases);

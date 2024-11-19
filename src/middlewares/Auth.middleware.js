@@ -20,7 +20,7 @@ const verifyAuth = asyncHandler(async (req, res, next) => {
     if (!auth) {
       throw new ApiError(401, "Access Denied. Invalid token");
     }
-    console.log(auth);
+    // console.log(auth);
 
     req.auth = auth;
     next();

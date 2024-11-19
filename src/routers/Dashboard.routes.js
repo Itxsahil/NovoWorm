@@ -20,10 +20,10 @@ const router = Router();
 
 router.route('/books').get(getAllBooksForUser);
 router.route('/book/:bookId').get(getBookByIdForUser);
-router.route('/chapters').get(findAllChaptersForUser);
-router.route('/chapter/:chapterId').get(findChapterByIdForUser);
+router.route('/chapters').get(verifyAuth,findAllChaptersForUser);
+router.route('/chapter/:chapterId').get(verifyAuth,findChapterByIdForUser);
 router.route('/like/:bookId').post(verifyAuth,LikeBook);
-router.route('/views/:chapterId').put(UpdateViews);
+router.route('/views/:chapterId').put(verifyAuth,UpdateViews);
 router.route('/youmayalsolike').get(YouMayAlsoLike);
 router.route('/newreleases').get(NewReleases);
 router.route('/bookmark/:bookId').post(verifyAuth,addBookMark);
