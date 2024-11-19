@@ -56,7 +56,7 @@ const Signin = asyncHandler(async (req, res) => {
   user.emailVerificationExpires = tokenExpiry;
   user.save({ validateBeforeSave: false });
 
-  const verificationUrl = `${req.protocol}://${req.get("host")}/verify-email/${unHashedToken}`;
+  const verificationUrl = `${req.protocol}://${req.get("host")}/api/v1/auth/verify-email/${unHashedToken}`;
   const subject = `please verify your email ${username}`;
   const html = generateVerificationHtml(username, verificationUrl);
   const text = generateVerificationText(username, verificationUrl);
