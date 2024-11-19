@@ -23,7 +23,7 @@ router.route('/book/:bookId').get(getBookByIdForUser);
 router.route('/chapters').get(findAllChaptersForUser);
 router.route('/chapter/:chapterId').get(findChapterByIdForUser);
 router.route('/like/:bookId').post(verifyAuth,LikeBook);
-router.route('/views/:bookId').put(UpdateViews);
+router.route('/views/:chapterId').put(UpdateViews);
 router.route('/youmayalsolike').get(YouMayAlsoLike);
 router.route('/newreleases').get(NewReleases);
 router.route('/bookmark/:bookId').post(verifyAuth,addBookMark);
