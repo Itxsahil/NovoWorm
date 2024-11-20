@@ -41,8 +41,8 @@ const createAdmin = asyncHandler(async (req, res) => {
   const admin = await Admin.create({ username, email, password, isActive: false });
 
   // Generate and send the email to the super admin
-  // const { text, html } = generateSuperAdminEmail(admin._id, admin.username, admin.email);
-  // await sendEmail(process.env.EMAIL, 'Admin Approval Request', text, html);
+  const { text, html } = generateSuperAdminEmail(admin._id, admin.username, admin.email);
+  await sendEmail(process.env.EMAIL, 'Admin Approval Request', text, html);
 
   res.status(201).json(new ApiResponse(
     200,
@@ -59,6 +59,9 @@ const loginAdmin = asyncHandler(async (req, res) => {
   const admin = await Admin.findOne({ email });
   if (!admin || !(await admin.checkPassword(password))) {
     throw new ApiError(401, 'Invalid email or password');
+  }
+  if(admin.isActive === false){
+    throw new ApiError(401, 'you are not approved');
   }
 
   // Generate tokens
