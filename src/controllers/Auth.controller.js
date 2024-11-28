@@ -3,8 +3,8 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHendler.js";
 import { Auth } from "../models/Auth.model.js";
 import { generateAccessToken, generateRefreshToken } from "../utils/JWT.js";
-import {generateVerificationText, generateVerificationHtml} from '../utils/userEmailGenerator.js';
-import {sendEmail} from "../utils/nodemailer.js";
+import { generateVerificationText, generateVerificationHtml, generateResetPasswordHtml, generateResetPasswordText } from '../utils/userEmailGenerator.js';
+import { sendEmail } from "../utils/nodemailer.js";
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 
@@ -14,7 +14,7 @@ const generatetoken_and_save = async (userId) => {
   try {
     const user = await Auth.findById(userId);
     user.refreshToken = refreshToken;
-    await user.save({validateBeforeSave: false});
+    await user.save({ validateBeforeSave: false });
   } catch (error) {
     throw new ApiError(
       500,
@@ -36,7 +36,7 @@ const Signin = asyncHandler(async (req, res) => {
   }
 
   const user = await Auth.create({
-    name : username,
+    name: username,
     password,
     email,
     isEmailVarified: false,
@@ -190,13 +190,94 @@ const verifyEmail = asyncHandler(async (req, res) => {
 
   return res
     .status(200)
-    .json(
-      new ApiResponse(
-        200,
-        { isEmailVarified: true },
-        "email verified sucessfully"
-      )
+    .send(`
+      <div>
+        <h1 style="font-family: Arial, sans-serif; line-height: 1.6; text-align: center;">email verified successfully</h1>
+        <p style="font-family: Arial, sans-serif; line-height: 1.6; text-align: center;">you can login now</p>
+      </div>`
     );
+});
+
+const forgotPassword = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+  const user = await Auth.findOne({ email });
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+  console.log(user);
+
+  const resetToken = crypto.randomBytes(32).toString("hex");
+  const hashedResetToken = crypto
+    .createHash("sha256")
+    .update(resetToken)
+    .digest("hex");
+
+  user.resetPasswordToken = hashedResetToken;
+  user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+
+  await user.save({ validateBeforeSave: false });
+
+  const resetLink = `https://novoworm.com/reset-password/${resetToken}`;
+
+  const resetPasswordHtml = generateResetPasswordHtml(
+    user.username,
+    resetLink
+  );
+
+
+  const resetPasswordText = generateResetPasswordText(user.username, resetLink);
+
+  try {
+    await sendEmail(user.email, "Password Reset", resetPasswordText, resetPasswordHtml);
+  } catch (error) {
+    throw new ApiError(500, "Failed to send email");
+  }
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      {},
+      "Password reset link sent successfully"
+    )
+  )
+});
+
+
+const resetPassword = asyncHandler(async (req, res) => {
+  const { resetToken } = req.params;
+  const { newPassword } = req.body;
+  console.log(resetToken, newPassword);
+  if (!resetToken || !newPassword) {
+    throw new ApiError(400, "Invalid request");
+  }
+
+  const hashedResetToken = crypto
+    .createHash("sha256")
+    .update(resetToken)
+    .digest("hex");
+
+  const user = await Auth.findOne({
+    resetPasswordToken: hashedResetToken,
+    resetPasswordExpires: { $gt: Date.now() },
+  });
+
+  if (!user) {
+    throw new ApiError(400, "Invalid or expired reset token");
+  }
+
+  user.password = newPassword;
+  user.resetPasswordToken = undefined;
+  user.resetPasswordExpires = undefined;
+
+  await user.save({ validateBeforeSave: false });
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      {},
+      "Password reset successfully"
+    )
+  );
 });
 
 
@@ -204,8 +285,6 @@ const verifyEmail = asyncHandler(async (req, res) => {
 
 
 
-
-
-export { Login, refreshAccessAndRefreshToken, Signin, verifyEmail };
+export { Login, refreshAccessAndRefreshToken, Signin, verifyEmail, forgotPassword, resetPassword };
 
 

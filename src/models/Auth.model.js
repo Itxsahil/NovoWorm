@@ -30,6 +30,13 @@ const AuthSchema = new mongoose.Schema({
   emailVerificationExpires: {
     type: Date,
   },
+  resetPasswordToken: {
+    type: String,
+    default: ''
+  },
+  resetPasswordExpires: {
+    type: Date,
+  },
 })
 
 AuthSchema.pre("save", async function (next) {
