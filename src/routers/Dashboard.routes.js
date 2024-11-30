@@ -9,7 +9,8 @@ import {
   NewReleases,
   addBookMark,
   getAllBookMarks,
-  isBookMarked
+  isBookMarked,
+  searchBookByCategory,
 } from '../controllers/Dashboard.controller.js';
 import { verifyAuth } from '../middlewares/Auth.middleware.js';
 
@@ -29,6 +30,7 @@ router.route('/newreleases').get(NewReleases);
 router.route('/bookmark/:bookId').post(verifyAuth,addBookMark);
 router.route('/bookmarks').get(verifyAuth,getAllBookMarks);
 router.route('/isbookmarked/:bookId').get(verifyAuth,isBookMarked);
+router.route('/search/:category').get(searchBookByCategory);
 
 
 export default router;

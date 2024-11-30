@@ -219,6 +219,24 @@ const isBookMarked = asyncHandler(async (req, res) => {
   )
 });
 
+const searchBookByCategory = asyncHandler(async (req, res) => {
+  const { category } = req.params;
+
+  try {
+    // Aggregate to match the category and randomly sample 4 books
+    const randomBooks = await Book.aggregate([
+      { $match: { categories: category, status: 'Published' } }, // Match category and 'Published' status
+      { $sample: { size: 4 } } // Randomly select 4 books
+    ]);
+
+    res.json(randomBooks);
+  } catch (error) {
+    res.status(500).json({ message: "An error occurred", error: error.message });
+  }
+});
+
+
+
 export {
   getAllBooksForUser,
   getBookByIdForUser,
@@ -230,5 +248,6 @@ export {
   NewReleases,
   addBookMark,
   getAllBookMarks,
-  isBookMarked
+  isBookMarked,
+  searchBookByCategory  
 }

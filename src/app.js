@@ -6,7 +6,7 @@ const app = express();
 app.use(
     cors({
         origin: (origin, callback) => {
-            console.log("Incoming Origin:", origin); // Log incoming origins
+            // console.log("Incoming Origin:", origin); // Log incoming origins
             const allowedOrigins = [process.env.CLIENT_URL, process.env.ADMIN_URL, process.env.NEWURL];
 
             if (!origin || allowedOrigins.includes(origin)) {
