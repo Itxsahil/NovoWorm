@@ -204,7 +204,7 @@ const forgotPassword = asyncHandler(async (req, res) => {
   if (!user) {
     throw new ApiError(404, "User not found");
   }
-  console.log(user);
+  // console.log(user);
 
   const resetToken = crypto.randomBytes(32).toString("hex");
   const hashedResetToken = crypto
@@ -246,7 +246,7 @@ const forgotPassword = asyncHandler(async (req, res) => {
 const resetPassword = asyncHandler(async (req, res) => {
   const { resetToken } = req.params;
   const { newPassword } = req.body;
-  console.log(resetToken, newPassword);
+  // console.log(resetToken, newPassword);
   if (!resetToken || !newPassword) {
     throw new ApiError(400, "Invalid request");
   }
