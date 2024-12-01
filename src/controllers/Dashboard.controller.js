@@ -25,12 +25,17 @@ const getAllBooksForUser = asyncHandler(async (req, res) => {
   if (!books) {
     throw new ApiError(404, 'No books found');
   }
+  const filteredBooks = books.map((book) => ({
+    _id: book._id,
+    title: book.title,
+    coverImage: book.coverImage
+  }));
 
   return res.status(200).json(
     new ApiResponse(
       200,
       {
-        books,
+        books :filteredBooks,
         currentPage: parseInt(page),
         totalPages: Math.ceil(totalBooks / limit),
       },
@@ -127,9 +132,14 @@ const YouMayAlsoLike = asyncHandler(async (req, res) => {
   const randomBooks = await Book.aggregate([
     { $match: { status: 'Published' } }, // Filter books with status 'Published'
     { $sample: { size: 4 } } // Randomly select 4 books
-  ]);
+  ])
+  const filteredBooks = randomBooks.map((book) => ({
+    _id: book._id,
+    title: book.title,
+    coverImage: book.coverImage
+  }));
 
-  res.json(randomBooks);
+  res.json(filteredBooks);
 });
 
 
@@ -138,7 +148,13 @@ const NewReleases = asyncHandler(async (req, res) => {
   const newReleases = await Book.find({status:"Published"})
     .sort({ createdAt: -1 }) // Sort by releaseDate in descending order
     .limit(4); // Fetch the 5 newest books
-  res.json(newReleases);
+    const filteredBooks = newReleases.map((book) => ({
+      _id: book._id,
+      title: book.title,
+      coverImage: book.coverImage,
+      synopsis: book.synopsis
+    }));
+  res.json(filteredBooks);
 });
 
 const addBookMark = asyncHandler(async (req, res) => {
@@ -187,11 +203,16 @@ const getAllBookMarks = asyncHandler(async (req, res) => {
 
   // Find books with the extracted book IDs
   const books = await Book.find({ _id: { $in: bookIds } });
+  const filteredBooks = books.map((book) => ({
+    _id: book._id,
+    title: book.title,
+    coverImage: book.coverImage
+  }));
 
   // Send the books to the client
   res.json({
     success: true,
-    data: books,
+    data: filteredBooks,
   });
 });
 
@@ -228,8 +249,13 @@ const searchBookByCategory = asyncHandler(async (req, res) => {
       { $match: { categories: category, status: 'Published' } }, // Match category and 'Published' status
       { $sample: { size: 4 } } // Randomly select 4 books
     ]);
+    const filteredBooks = randomBooks.map((book) => ({
+      _id: book._id,
+      title: book.title,
+      coverImage: book.coverImage
+    }));
 
-    res.json(randomBooks);
+    res.json(filteredBooks);
   } catch (error) {
     res.status(500).json({ message: "An error occurred", error: error.message });
   }
