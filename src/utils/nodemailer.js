@@ -2,8 +2,9 @@ import nodemailer from "nodemailer";
 
 // create reusable transporter object using the default SMTP transport
 const transporter = nodemailer.createTransport({
-  service: "gmail",
-  secure: false, // Use `true` for port 465, `false` for all other ports
+  host: 'smtp.hostinger.com',
+  port: 465,
+  secure: true,  // Use `true` for port 465, `false` for all other ports
   auth: {
     user: process.env.GMAIL_USER,
     pass: process.env.GMAIL_PASS,
@@ -22,7 +23,7 @@ const transporter = nodemailer.createTransport({
 
 export const sendEmail = async (to, subject, text, html) => {
   const mailOptions = {
-    from: `"NetAlign" <${process.env.GMAIL_USER}>`, // sender address
+    from: `"Novoworm" <${process.env.GMAIL_USER}>`, // sender address
     to, // receiver's email address
     subject, // subject line
     text, // plain text body
