@@ -217,20 +217,47 @@ const findChapterById = asyncHandler(async (req, res) => {
 
 
 
-
 const editBook = asyncHandler(async (req, res) => {
   const { bookId } = req.params;
-  const { title, authorname, synopsis, categories, coverImage, tags } = req.body;
+  const { title, authorname, synopsis, categories, tags } = req.body;
 
-  const updatedBook = await Book.findByIdAndUpdate(
-    bookId,
-    { title, authorname, synopsis, categories, coverImage, tags },
-    { new: true }
-  );
+  // Parse tags if it's a stringified array or split by commas
+  let tagsArray = [];
+  if (typeof tags === 'string') {
+    try {
+      tagsArray = JSON.parse(tags);
+    } catch {
+      tagsArray = tags.split(',').map(tag => tag.trim());
+    }
+  }
+
+  // Check if a new cover image is provided
+  let coverImage;
+  if (req.file?.path) {
+    coverImage = await uploadOnCloudinary(req.file.path);
+  }
+
+  // Prepare the update object
+  const updateData = {
+    title,
+    authorname,
+    synopsis,
+    categories,
+    tags: tagsArray,
+  };
+
+  // Only include coverImage if a new image is uploaded
+  if (coverImage) {
+    updateData.coverImage = coverImage.url;
+  }
+
+  const updatedBook = await Book.findByIdAndUpdate(bookId, updateData, { new: false });
 
   if (!updatedBook) {
     throw new ApiError(404, 'Book not found or failed to update');
   }
+
+  await deleteFromeCloudinary(updatedBook.coverImage, "image");
 
   return res.status(200).json(
     new ApiResponse(
@@ -240,6 +267,7 @@ const editBook = asyncHandler(async (req, res) => {
     )
   );
 });
+
 
 
 
