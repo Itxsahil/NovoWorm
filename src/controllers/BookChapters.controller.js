@@ -257,7 +257,9 @@ const editBook = asyncHandler(async (req, res) => {
     throw new ApiError(404, 'Book not found or failed to update');
   }
 
-  await deleteFromeCloudinary(updatedBook.coverImage, "image");
+  if(coverImage){
+    await deleteFromeCloudinary(updatedBook.coverImage, "image");
+  } 
 
   return res.status(200).json(
     new ApiResponse(
