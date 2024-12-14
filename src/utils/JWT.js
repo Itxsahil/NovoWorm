@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 
 const generateAccessToken = (userId) => {
   return jwt.sign({ userId }, process.env.ACCESS_TOKEN_SECRET, {
-    expiresIn: '1d', // Access token expires in 1 days
+    expiresIn: '29d', // Access token expires in 1 days
   });
 };
 
